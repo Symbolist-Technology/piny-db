@@ -40,7 +40,7 @@ pinydb>
 
 **Using PHP Client (SDK)**
 
-```
+```php
 use PinyDB\PinyDBClient;
 
 try{
