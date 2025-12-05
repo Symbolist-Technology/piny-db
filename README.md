@@ -6,10 +6,6 @@
 <p align="center">Tiny File-Based JSON Database for PHP</p>
 
 
-
-# PinyDB
-PinyDB ● tiny PHP JSON database
-
 ## Install
 
 ```
