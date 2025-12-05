@@ -1,0 +1,22 @@
+<svg width="330" height="130" viewBox="0 0 330 130" xmlns="http://www.w3.org/2000/svg">
+  <!-- Ant -->
+  <g fill="none" stroke="#000" stroke-width="4" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="60" cy="40" r="12"></circle>
+    <line x1="52" y1="28" x2="44" y2="15"></line>
+    <line x1="68" y1="28" x2="76" y2="15"></line>
+    <ellipse cx="60" cy="70" rx="18" ry="14"></ellipse>
+    <ellipse cx="60" cy="100" rx="22" ry="16"></ellipse>
+    <line x1="42" y1="70" x2="20" y2="58"></line>
+    <line x1="42" y1="80" x2="20" y2="95"></line>
+    <line x1="78" y1="70" x2="100" y2="58"></line>
+    <line x1="78" y1="80" x2="100" y2="95"></line>
+  </g>
+
+  <!-- Text -->
+  <text x="140" y="70" font-family="Arial, sans-serif" font-size="42" font-weight="700">
+    PinyDB
+  </text>
+  <text x="140" y="100" font-family="Arial, sans-serif" font-size="18" fill="#444">
+    Tiny File-Based JSON Database for PHP
+  </text>
+</svg>
