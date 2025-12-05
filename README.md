@@ -1,6 +1,12 @@
 # PinyDB
 PinyDB ● tiny PHP JSON database
 
+## Install
+
+```
+php composer.phar require symbolist/piny-db
+```
+
 ## Usage
 
 Start Server
