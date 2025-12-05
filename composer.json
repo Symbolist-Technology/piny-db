@@ -8,6 +8,10 @@
       "PinyDB\\": "src/"
     }
   },
+  "bin": [
+    "bin/pinydb-cli",
+    "bin/pinydb-server"
+  ],
   "minimum-stability": "stable",
   "require": {
     "php": ">=7.4"

@@ -1,168 +1,127 @@
 <?php
 declare(strict_types=1);
 
-require __DIR__ . '/PinyDB.php';
+namespace PinyDB;
 
-if ($argc < 2) {
-    fwrite(STDERR, "Usage: php PinyDBServer.php <data_dir> [host] [port]\n");
-    exit(1);
-}
+use Throwable;
 
-$dataDir = $argv[1];
-$host    = $argv[2] ?? '127.0.0.1';
-$port    = (int)($argv[3] ?? 9999);
+class PinyDBServer
+{
+    private string $host;
+    private int    $port;
+    private string $dataDir;
+    private $server = null;
 
-$db = new PinyDB($dataDir);
+    private PinyDB $db;
 
-$server = @stream_socket_server("tcp://{$host}:{$port}", $errno, $errstr);
-if (!$server) {
-    fwrite(STDERR, "Failed to start server: {$errstr} ({$errno})\n");
-    exit(1);
-}
+    public function __construct(string $host, int $port, string $dataDir)
+    {
+        $this->host    = $host;
+        $this->port    = $port;
+        $this->dataDir = rtrim($dataDir, '/');
 
-echo "PinyDBServer listening on {$host}:{$port}, data dir: {$dataDir}\n";
-
-while (true) {
-    $conn = @stream_socket_accept($server, -1);
-    if ($conn === false) {
-        continue;
+        $this->db = new PinyDB($this->dataDir);
     }
 
-    handleClient($conn, $db);
-    fclose($conn);
-}
+    public function start(): void
+    {
+        $addr = "tcp://{$this->host}:{$this->port}";
 
-// --------------------
-// Client handler
-// --------------------
+        $this->server = @stream_socket_server($addr, $errno, $errstr);
 
-function handleClient($conn, PinyDB $db): void
-{
-    stream_set_blocking($conn, true);
-
-    while (!feof($conn)) {
-        $line = fgets($conn);
-        if ($line === false) {
-            break;
+        if (!$this->server) {
+            throw new \RuntimeException("Failed to start server: {$errstr} ({$errno})");
         }
 
-        $line = trim($line);
-        if ($line === '') {
-            continue;
+        echo "PinyDBServer listening on {$this->host}:{$this->port}, data dir: {$this->dataDir}\n";
+
+        while (true) {
+            $conn = @stream_socket_accept($this->server, -1);
+            if ($conn === false) {
+                continue;
+            }
+            $this->handleClient($conn);
+            fclose($conn);
         }
-
-        $response = handleCommand($line, $db);
-
-        fwrite($conn, json_encode($response, JSON_UNESCAPED_UNICODE) . "\n");
-        fflush($conn);
     }
-}
 
-function handleCommand(string $line, PinyDB $db): array
-{
-    $parts = explode(' ', $line, 3);
-    $cmd   = strtoupper($parts[0] ?? '');
+    private function handleClient($conn): void
+    {
+        stream_set_blocking($conn, true);
 
-    try {
-        switch ($cmd) {
-            case 'PING':
-                return ['ok' => true, 'data' => 'PONG'];
-
-            case 'COUNT': {
-                if (count($parts) < 2) {
-                    return error("COUNT requires: COUNT <table>");
-                }
-                $table = $parts[1];
-                $cnt   = $db->count($table);
-                return ['ok' => true, 'data' => $cnt];
+        while (!feof($conn)) {
+            $line = fgets($conn);
+            if ($line === false) {
+                break;
             }
 
-            case 'ALL': {
-                if (count($parts) < 2) {
-                    return error("ALL requires: ALL <table>");
-                }
-                $table = $parts[1];
-                $rows  = $db->all($table);
-                return ['ok' => true, 'data' => $rows];
+            $line = trim($line);
+            if ($line === '') {
+                continue;
             }
 
-            case 'GET': {
-                if (count($parts) < 3) {
-                    return error("GET requires: GET <table> <id>");
-                }
-                $table = $parts[1];
-                $id    = (int)$parts[2];
-                $row   = $db->get($table, $id);
-                return ['ok' => true, 'data' => $row];
-            }
+            $response = $this->handleCommand($line);
 
-            case 'INSERT': {
-                if (count($parts) < 3) {
-                    return error("INSERT requires: INSERT <table> <json_row>");
-                }
-                $table   = $parts[1];
-                $jsonStr = $parts[2];
-                $row     = json_decode($jsonStr, true);
-                if (!is_array($row)) {
-                    return error("Invalid JSON row");
-                }
-                $id = $db->insert($table, $row);
-                return ['ok' => true, 'data' => $id];
-            }
-
-            case 'UPDATE': {
-                if (count($parts) < 3) {
-                    return error("UPDATE requires: UPDATE <table> <id> <json_fields>");
-                }
-
-                // Need 4 parts for UPDATE, so we re-split
-                $parts2 = explode(' ', $line, 4);
-                if (count($parts2) < 4) {
-                    return error("UPDATE requires: UPDATE <table> <id> <json_fields>");
-                }
-
-                $table   = $parts2[1];
-                $id      = (int)$parts2[2];
-                $jsonStr = $parts2[3];
-
-                $fields = json_decode($jsonStr, true);
-                if (!is_array($fields)) {
-                    return error("Invalid JSON fields");
-                }
-
-                $ok = $db->update($table, $id, $fields);
-                return ['ok' => true, 'data' => $ok];
-            }
-
-            case 'DELETE': {
-                if (count($parts) < 3) {
-                    return error("DELETE requires: DELETE <table> <id>");
-                }
-                $table = $parts[1];
-                $id    = (int)$parts[2];
-                $ok    = $db->delete($table, $id);
-                return ['ok' => true, 'data' => $ok];
-            }
-
-            case 'ROTATED_POP': {
-                if (count($parts) < 2) {
-                    return error("ROTATED_POP requires: ROTATED_POP <table>");
-                }
-                $table = $parts[1];
-                $row   = $db->rotatedPop($table);
-                return ['ok' => true, 'data' => $row];
-            }
-
-            default:
-                return error("Unknown command: {$cmd}");
+            fwrite($conn, json_encode($response, JSON_UNESCAPED_UNICODE) . "\n");
+            fflush($conn);
         }
-    } catch (Throwable $e) {
-        return error("Exception: " . $e->getMessage());
     }
-}
 
-function error(string $msg): array
-{
-    return ['ok' => false, 'error' => $msg];
+    private function handleCommand(string $line): array
+    {
+        $parts = explode(' ', $line, 3);
+        $cmd   = strtoupper($parts[0] ?? '');
+
+        try {
+            switch ($cmd) {
+
+                case 'PING':
+                    return ['ok' => true, 'data' => 'PONG'];
+
+                case 'COUNT':
+                    if (count($parts) < 2) return $this->error("COUNT <table>");
+                    return ['ok' => true, 'data' => $this->db->count($parts[1])];
+
+                case 'ALL':
+                    if (count($parts) < 2) return $this->error("ALL <table>");
+                    return ['ok' => true, 'data' => $this->db->all($parts[1])];
+
+                case 'GET':
+                    if (count($parts) < 3) return $this->error("GET <table> <id>");
+                    return ['ok' => true, 'data' => $this->db->get($parts[1], (int)$parts[2])];
+
+                case 'INSERT':
+                    if (count($parts) < 3) return $this->error("INSERT <table> <json_row>");
+                    $row = json_decode($parts[2], true);
+                    if (!is_array($row)) return $this->error("Invalid JSON row");
+                    return ['ok' => true, 'data' => $this->db->insert($parts[1], $row)];
+
+                case 'UPDATE':
+                    $p = explode(' ', $line, 4);
+                    if (count($p) < 4) return $this->error("UPDATE <table> <id> <json_fields>");
+                    $fields = json_decode($p[3], true);
+                    if (!is_array($fields)) return $this->error("Invalid JSON");
+                    return ['ok' => true, 'data' => $this->db->update($p[1], (int)$p[2], $fields)];
+
+                case 'DELETE':
+                    if (count($parts) < 3) return $this->error("DELETE <table> <id>");
+                    return ['ok' => true, 'data' => $this->db->delete($parts[1], (int)$parts[2])];
+
+                case 'ROTATED_POP':
+                    if (count($parts) < 2) return $this->error("ROTATED_POP <table>");
+                    return ['ok' => true, 'data' => $this->db->rotatedPop($parts[1])];
+
+                default:
+                    return $this->error("Unknown command: {$cmd}");
+            }
+        } catch (Throwable $e) {
+            return $this->error($e->getMessage());
+        }
+    }
+
+    private function error(string $msg): array
+    {
+        return ['ok' => false, 'error' => $msg];
+    }
 }
 

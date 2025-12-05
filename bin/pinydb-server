@@ -1,0 +1,48 @@
+#!/usr/bin/env php
+<?php
+declare(strict_types=1);
+
+/**
+ * Composer-ready server entry for PinyDB.
+ * Example:
+ *   pinydb-server -h 127.0.0.1 -P 9999 -d /path/to/data
+ */
+
+$autoloadCandidates = [
+    __DIR__ . '/../vendor/autoload.php', // when running inside repo
+    __DIR__ . '/../autoload.php',        // when installed via Composer (vendor/bin)
+];
+
+$loaded = false;
+foreach ($autoloadCandidates as $file) {
+    if (file_exists($file)) {
+        require $file;
+        $loaded = true;
+        break;
+    }
+}
+
+if (!$loaded) {
+    fwrite(STDERR, "PinyDB: unable to locate autoload.php\n");
+    exit(1);
+}
+
+use PinyDB\PinyDBServer;
+
+$options = getopt('h:P:d:', ['host:', 'port:', 'data-dir:']);
+
+$host = $options['h']      ?? $options['host']     ?? '127.0.0.1';
+$port = isset($options['P']) ? (int)$options['P']
+      : (isset($options['port']) ? (int)$options['port'] : 9999);
+$dataDir = $options['d']   ?? $options['data-dir'] ?? (getcwd() . '/data');
+
+if (!is_dir($dataDir)) {
+    if (!mkdir($dataDir, 0777, true) && !is_dir($dataDir)) {
+        fwrite(STDERR, "Failed to create data dir: {$dataDir}\n");
+        exit(1);
+    }
+}
+
+$server = new PinyDBServer($host, $port, $dataDir);
+$server->start();
+

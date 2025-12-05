@@ -1,0 +1,35 @@
+#!/usr/bin/env php
+<?php
+declare(strict_types=1);
+
+/**
+ * Composer-ready CLI entry for PinyDB.
+ * Works when run:
+ *  - from the package repo:        ./bin/pinydb
+ *  - from a project using it:      ./vendor/bin/pinydb
+ */
+
+$autoloadCandidates = [
+    __DIR__ . '/../vendor/autoload.php', // when running inside repo
+    __DIR__ . '/../autoload.php',        // when installed via Composer (vendor/bin)
+];
+
+$loaded = false;
+foreach ($autoloadCandidates as $file) {
+    if (file_exists($file)) {
+        require $file;
+        $loaded = true;
+        break;
+    }
+}
+
+if (!$loaded) {
+    fwrite(STDERR, "PinyDB: unable to locate autoload.php\n");
+    exit(1);
+}
+
+use PinyDB\PinyDBCli;
+
+$cli = new PinyDBCli();
+exit($cli->run($argv));
+

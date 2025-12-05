@@ -12,7 +12,8 @@ php composer.phar require symbolist/piny-db
 Start Server
 
 ```
-nohup php PinyDBServer.php ./datadir 127.0.0.1 9999  > /tmp/pinydb.log 2>&1 &
+
+nohup vendor/bin/pinydb-server -h 127.0.0.1 -P 9999 -d ./piny-data > /tmp/pinydb.log 2>&1 &
 
 
 ```
@@ -24,10 +25,12 @@ tail -f /tmp/pinydb.log
 
 ```
 
-Use Client
+Use Client (Interactive Mode)
 
 ```
-php PinyDBCli.php 127.0.0.1 9999
+
+pinydb-cli --host=127.0.0.1 --port=9999 ping
+
  
 ```
 Example client 
@@ -47,5 +50,6 @@ pinydb>
   COUNT your_table
   ALL your_table
   ROTATED_POP your_table
+  REMOVE your_table 1
 
 ```

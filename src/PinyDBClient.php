@@ -1,6 +1,10 @@
 <?php
 declare(strict_types=1);
 
+namespace PinyDB;
+
+use RuntimeException;
+
 class PinyDBClient
 {
     private string $host;

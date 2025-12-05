@@ -1,6 +1,8 @@
 <?php
 declare(strict_types=1);
 
+namespace PinyDB;
+
 class PinyDB
 {
     private string $dir;
