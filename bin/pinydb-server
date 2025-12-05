@@ -9,8 +9,10 @@ declare(strict_types=1);
  */
 
 $autoloadCandidates = [
-    __DIR__ . '/../vendor/autoload.php', // when running inside repo
-    __DIR__ . '/../autoload.php',        // when installed via Composer (vendor/bin)
+    // When running directly in this repo (development)
+    __DIR__ . '/../vendor/autoload.php',
+    // When installed as a dependency (vendor/symbolist/piny-db/bin/…)
+    __DIR__ . '/../../../autoload.php',
 ];
 
 $loaded = false;
