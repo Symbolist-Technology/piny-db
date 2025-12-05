@@ -2,7 +2,6 @@
   <img src="assets/piny-db-logo.svg" width="220" alt="PineDB Logo">
 </p>
 
-<h1 align="center">PineDB</h1>
 <p align="center">Tiny File-Based JSON Database for PHP</p>
 
 
