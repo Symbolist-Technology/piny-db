@@ -1,0 +1,16 @@
+{
+  "name": "symbolist/pinydb",
+  "description": "A tiny file-based JSON database for PHP with atomic locking, queue rotation, and optional TCP server.",
+  "type": "library",
+  "license": "MIT",
+  "autoload": {
+    "psr-4": {
+      "PinyDB\\": "src/"
+    }
+  },
+  "minimum-stability": "stable",
+  "require": {
+    "php": ">=7.4"
+  }
+}
+
