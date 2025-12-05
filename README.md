@@ -48,7 +48,7 @@ try{
 
     echo $client->ping();  // PONG
     //$record = array('foo' => 'bar.'.rand(99,9999));
-    //echo $client->insert('records', $visit);  // PONG
+    //echo $client->insert('records', $record);  // PONG
     $record=  $client->rotatedPop('records');
     print_r($record);
     exit;
