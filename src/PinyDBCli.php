@@ -16,6 +16,13 @@ class PinyDBCli
 {
     public function run(array $argv): int
     {
+
+        // help command
+        if (in_array('--help', $argv, true) || in_array('-h', $argv, true) || in_array('help', $argv, true)) {
+            $this->printHelp();
+            return 0;
+        }
+
         $options = getopt(
             "h:P:t:c:",
             ["host:", "port:", "timeout:", "command:"]
@@ -38,6 +45,34 @@ class PinyDBCli
         // Interactive mode
         $this->interactiveLoop($host, $port, $timeout);
         return 0;
+    }
+
+    private function printHelp(): void
+    {
+        echo "PinyDB CLI\n";
+        echo "-----------\n";
+        echo "Commands:\n";
+        echo "  --help              Show this help message\n";
+        echo "  -c <CMD>            Run a single command\n";
+        echo "  PING                Test connection\n";
+        echo "  COUNT <table>       Count rows in table\n";
+        echo "  ALL <table>         Get all rows\n";
+        echo "  GET <table> <id>    Get 1 row\n";
+        echo "  INSERT <t> <json>   Insert row\n";
+        echo "  UPDATE <t> <id> <json>   Update row\n";
+        echo "  DELETE <t> <id>     Delete row\n";
+        echo "  ROTATED_POP <t>     Pop+rotate queue\n\n";
+        echo "Examples:\n";
+        echo "  pinydb-cli -c \"PING\"\n";
+        echo "  pinydb-cli -c \"INSERT users {\\\"name\\\":\\\"aa\\\"}\"\n";
+    }
+
+    private function printBanner(): void
+    {
+        echo "    /\\     PinyDB CLI\n";
+        echo "   ( ••)    lightweight JSON DB\n";
+        echo "   /\\_/\\   powered by PHP\n";
+        echo "------------------------------\n";
     }
 
     // -----------------------------
@@ -96,15 +131,11 @@ class PinyDBCli
     // -----------------------------
     private function interactiveLoop(string $host, int $port, int $timeout): void
     {
-        echo "PinyDB CLI connected to {$host}:{$port}\n";
-        echo "Commands:\n";
-        echo "  PING\n";
-        echo "  INSERT your_table {\"foo\":\"bar\"}\n";
-        echo "  GET your_table 1\n";
-        echo "  COUNT your_table\n";
-        echo "  ALL your_table\n";
-        echo "  ROTATED_POP your_table\n";
-        echo "Use 'exit', 'quit' or '\\q' to leave.\n\n";
+        $this->printBanner();
+
+        $this->printHelp();
+
+        echo "\nUse 'exit', 'quit' or '\\q' to leave.\n\n";
 
         while (true) {
             if (function_exists('readline')) {
