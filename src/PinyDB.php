@@ -21,6 +21,22 @@ class PinyDB
         return "{$this->dir}/{$table}.json";
     }
 
+    public function listTables(): array
+    {
+        if (!is_dir($this->dir)) {
+            return [];
+        }
+
+        $files = glob($this->dir . '/*.json') ?: [];
+        $tables = array_map(static function (string $file): string {
+            return pathinfo($file, PATHINFO_FILENAME);
+        }, $files);
+
+        sort($tables, SORT_STRING);
+
+        return $tables;
+    }
+
     private function defaultData(): array
     {
         return [
@@ -182,6 +198,11 @@ class PinyDB
         $this->save($table, $data);
     }
 
+    public function truncate(string $table): void
+    {
+        $this->save($table, $this->defaultData());
+    }
+
     /**
      * Queue-style rotation:
      * - Take first row
@@ -190,7 +211,7 @@ class PinyDB
      *
      * Returns null if table is empty.
      */
-    public function rotatedPop(string $table): ?array
+    public function rotate(string $table): ?array
     {
         $data = $this->load($table);
         if (empty($data['rows'])) {
@@ -203,6 +224,14 @@ class PinyDB
         $this->save($table, $data);
 
         return $first;
+    }
+
+    /**
+     * @deprecated Use rotate() instead.
+     */
+    public function rotatedPop(string $table): ?array
+    {
+        return $this->rotate($table);
     }
 }
 

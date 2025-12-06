@@ -122,10 +122,27 @@ class PinyDBClient
         return (bool)$r['data'];
     }
 
+    public function rotate(string $table): ?array
+    {
+        $r = $this->send("ROTATE {$table}");
+        return $r['data'];
+    }
+
     public function rotatedPop(string $table): ?array
     {
-        $r = $this->send("ROTATED_POP {$table}");
+        return $this->rotate($table);
+    }
+
+    public function showTables(): array
+    {
+        $r = $this->send('SHOW TABLES');
         return $r['data'];
+    }
+
+    public function truncate(string $table): bool
+    {
+        $r = $this->send("TRUNCATE {$table}");
+        return (bool)$r['data'];
     }
 }
 
