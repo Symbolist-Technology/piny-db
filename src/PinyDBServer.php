@@ -132,6 +132,10 @@ class PinyDBServer
                     if (count($parts) < 2) return $this->error("ROTATED_POP <table>");
                     return ['ok' => true, 'data' => $this->db->rotate($parts[1])];
 
+                case 'RANDOM':
+                    if (count($parts) < 2) return $this->error("RANDOM <table>");
+                    return ['ok' => true, 'data' => $this->db->random($parts[1])];
+
                 default:
                     return $this->error("Unknown command: {$cmd}");
             }

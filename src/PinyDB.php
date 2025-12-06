@@ -42,6 +42,7 @@ class PinyDB
         return [
             'auto_id' => 1,
             'rows'    => [],
+            'random_ids' => [],
         ];
     }
 
@@ -73,6 +74,10 @@ class PinyDB
             $data['auto_id'] = count($data['rows'])
                 ? (max(array_column($data['rows'], 'id')) + 1)
                 : 1;
+        }
+
+        if (!isset($data['random_ids']) || !is_array($data['random_ids'])) {
+            $data['random_ids'] = [];
         }
 
         return $data;
@@ -140,6 +145,8 @@ class PinyDB
         $data['auto_id'] = $id + 1;
         $data['rows'][]  = $row;
 
+        $data['random_ids'] = [];
+
         $this->save($table, $data);
 
         return $row['id'];
@@ -192,6 +199,7 @@ class PinyDB
 
         if ($after !== $before) {
             $data['rows'] = $rows;
+            $data['random_ids'] = [];
             $this->save($table, $data);
             return true;
         }
@@ -206,6 +214,7 @@ class PinyDB
     {
         $data = $this->load($table);
         $data['rows'] = array_values($rows);
+        $data['random_ids'] = [];
         $this->save($table, $data);
     }
 
@@ -253,6 +262,57 @@ class PinyDB
     public function rotatedPop(string $table): ?array
     {
         return $this->rotate($table);
+    }
+
+    /**
+     * Randomized rotation:
+     * - Builds a temporary shuffle pool of row ids (if missing)
+     * - Picks a random id from the pool
+     * - Removes it from the pool and returns the corresponding row
+     * - If a stale id is encountered, it is dropped and the pick is retried
+     * - When the pool becomes empty it is rebuilt from current rows
+     *
+     * Returns null if table is empty.
+     */
+    public function random(string $table): ?array
+    {
+        $data = $this->load($table);
+        $rowsById = [];
+
+        foreach ($data['rows'] as $row) {
+            $rowsById[(int)$row['id']] = $row;
+        }
+
+        if (empty($rowsById)) {
+            $data['random_ids'] = [];
+            $this->save($table, $data);
+            return null;
+        }
+
+        if (empty($data['random_ids'])) {
+            $data['random_ids'] = array_keys($rowsById);
+        }
+
+        while (true) {
+            if (empty($data['random_ids'])) {
+                $data['random_ids'] = array_keys($rowsById);
+            }
+
+            if (empty($data['random_ids'])) {
+                $this->save($table, $data);
+                return null;
+            }
+
+            $index = array_rand($data['random_ids']);
+            $id    = (int)$data['random_ids'][$index];
+
+            array_splice($data['random_ids'], $index, 1);
+
+            if (isset($rowsById[$id])) {
+                $this->save($table, $data);
+                return $rowsById[$id];
+            }
+        }
     }
 }
 
