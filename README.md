@@ -49,7 +49,7 @@ try{
     echo $client->ping();  // PONG
     //$record = array('foo' => 'bar.'.rand(99,9999));
     //echo $client->insert('records', $record);  // PONG
-    $record=  $client->rotatedPop('records');
+    $record=  $client->rotate('records');
     print_r($record);
     exit;
 }
@@ -72,6 +72,8 @@ catch(Exception $e) {
   INSERT <table> <json>         Insert row
   UPDATE <table> <id> <json>    Update row
   DELETE <table> <id>           Delete row
-  ROTATED_POP <table>           Pop+rotate queue
+  SHOW TABLES                   List tables
+  TRUNCATE <table>              Remove all rows from table
+  ROTATE <table>                Pop+rotate queue
 
 ```

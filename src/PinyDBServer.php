@@ -86,6 +86,10 @@ class PinyDBServer
                     if (count($parts) < 2) return $this->error("ALL <table>");
                     return ['ok' => true, 'data' => $this->db->all($parts[1])];
 
+                case 'SHOW':
+                    if (strtoupper($parts[1] ?? '') !== 'TABLES') return $this->error("SHOW TABLES");
+                    return ['ok' => true, 'data' => $this->db->listTables()];
+
                 case 'GET':
                     if (count($parts) < 3) return $this->error("GET <table> <id>");
                     return ['ok' => true, 'data' => $this->db->get($parts[1], (int)$parts[2])];
@@ -107,9 +111,18 @@ class PinyDBServer
                     if (count($parts) < 3) return $this->error("DELETE <table> <id>");
                     return ['ok' => true, 'data' => $this->db->delete($parts[1], (int)$parts[2])];
 
+                case 'TRUNCATE':
+                    if (count($parts) < 2) return $this->error("TRUNCATE <table>");
+                    $this->db->truncate($parts[1]);
+                    return ['ok' => true, 'data' => true];
+
+                case 'ROTATE':
+                    if (count($parts) < 2) return $this->error("ROTATE <table>");
+                    return ['ok' => true, 'data' => $this->db->rotate($parts[1])];
+
                 case 'ROTATED_POP':
                     if (count($parts) < 2) return $this->error("ROTATED_POP <table>");
-                    return ['ok' => true, 'data' => $this->db->rotatedPop($parts[1])];
+                    return ['ok' => true, 'data' => $this->db->rotate($parts[1])];
 
                 default:
                     return $this->error("Unknown command: {$cmd}");

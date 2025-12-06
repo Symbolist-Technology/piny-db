@@ -14,5 +14,5 @@ $count = $db->count('your_table');
 print "total count$count)\n";
 
 // rotate queue and get next visit
-$record = $db->rotatedPop('your_table');
+$record = $db->rotate('your_table');
 print_r($record);

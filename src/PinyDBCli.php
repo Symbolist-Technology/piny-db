@@ -61,7 +61,9 @@ class PinyDBCli
         echo "  INSERT <t> <json>   Insert row\n";
         echo "  UPDATE <t> <id> <json>   Update row\n";
         echo "  DELETE <t> <id>     Delete row\n";
-        echo "  ROTATED_POP <t>     Pop+rotate queue\n\n";
+        echo "  SHOW TABLES         List tables\n";
+        echo "  TRUNCATE <t>        Remove all rows from table\n";
+        echo "  ROTATE <t>          Pop+rotate queue\n\n";
         echo "Examples:\n";
         echo "  pinydb-cli -c \"PING\"\n";
         echo "  pinydb-cli -c \"INSERT users {\\\"name\\\":\\\"aa\\\"}\"\n";
