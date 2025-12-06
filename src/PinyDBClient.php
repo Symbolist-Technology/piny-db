@@ -89,6 +89,12 @@ class PinyDBClient
         return $r['data'];
     }
 
+    public function create(string $table): bool
+    {
+        $r = $this->send("CREATE {$table}");
+        return (bool)$r['data'];
+    }
+
     public function all(string $table): array
     {
         $r = $this->send("ALL {$table}");
@@ -142,6 +148,12 @@ class PinyDBClient
     public function truncate(string $table): bool
     {
         $r = $this->send("TRUNCATE {$table}");
+        return (bool)$r['data'];
+    }
+
+    public function drop(string $table): bool
+    {
+        $r = $this->send("DROP {$table}");
         return (bool)$r['data'];
     }
 }

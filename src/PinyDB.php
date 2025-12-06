@@ -107,6 +107,17 @@ class PinyDB
         fclose($fp);
     }
 
+    public function create(string $table): bool
+    {
+        $file = $this->tableFile($table);
+        if (file_exists($file)) {
+            return false;
+        }
+
+        $this->save($table, $this->defaultData());
+        return true;
+    }
+
     public function all(string $table): array
     {
         $data = $this->load($table);
@@ -201,6 +212,16 @@ class PinyDB
     public function truncate(string $table): void
     {
         $this->save($table, $this->defaultData());
+    }
+
+    public function drop(string $table): bool
+    {
+        $file = $this->tableFile($table);
+        if (!file_exists($file)) {
+            return false;
+        }
+
+        return unlink($file);
     }
 
     /**
