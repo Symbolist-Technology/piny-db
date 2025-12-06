@@ -134,6 +134,12 @@ class PinyDBClient
         return $r['data'];
     }
 
+    public function random(string $table): ?array
+    {
+        $r = $this->send("RANDOM {$table}");
+        return $r['data'];
+    }
+
     public function rotatedPop(string $table): ?array
     {
         return $this->rotate($table);

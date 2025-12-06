@@ -77,5 +77,6 @@ catch(Exception $e) {
   SHOW TABLES                   List tables
   TRUNCATE <table>              Remove all rows from table
   ROTATE <table>                Pop+rotate queue
+  RANDOM <table>                Randomly pop+rotate queue
 
 ```

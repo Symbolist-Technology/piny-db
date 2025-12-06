@@ -64,7 +64,8 @@ class PinyDBCli
         echo "  DELETE <t> <id>         Delete row\n";
         echo "  SHOW TABLES             List tables\n";
         echo "  TRUNCATE <t>            Remove all rows from table\n";
-        echo "  ROTATE <t>              Pop+rotate queue\n\n";
+        echo "  ROTATE <t>              Pop+rotate queue\n";
+        echo "  RANDOM <t>              Randomly pop+rotate queue\n\n";
         echo "Examples:\n";
         echo "  pinydb-cli -c \"PING\"\n";
         echo "  pinydb-cli -c \"CREATE users\"\n";
