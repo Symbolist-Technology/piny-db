@@ -49,32 +49,40 @@ class PinyDBCli
 
     private function printHelp(): void
     {
-        echo "PinyDB CLI\n";
-        echo "-----------\n";
-        echo "Commands:\n";
-        echo "  --help              Show this help message\n";
-        echo "  -c <CMD>            Run a single command\n";
-        echo "  PING                Test connection\n";
-        echo "  COUNT <table>       Count rows in table\n";
-        echo "  ALL <table>         Get all rows\n";
-        echo "  GET <table> <id>    Get 1 row\n";
-        echo "  INSERT <t> <json>   Insert row\n";
-        echo "  UPDATE <t> <id> <json>   Update row\n";
-        echo "  DELETE <t> <id>     Delete row\n";
-        echo "  SHOW TABLES         List tables\n";
-        echo "  TRUNCATE <t>        Remove all rows from table\n";
-        echo "  ROTATE <t>          Pop+rotate queue\n\n";
+        echo "PinyDB CLI Commands\n";
+        echo "-------------------\n";
+        echo "  --help / help            Show this help message\n";
+        echo "  -c <CMD>                Run a single command\n";
+        echo "  PING                    Test connection\n";
+        echo "  CREATE <table>          Create a new table\n";
+        echo "  DROP <table>            Drop a table\n";
+        echo "  COUNT <table>           Count rows in table\n";
+        echo "  ALL <table>             Get all rows\n";
+        echo "  GET <table> <id>        Get 1 row\n";
+        echo "  INSERT <t> <json>       Insert row\n";
+        echo "  UPDATE <t> <id> <json>  Update row\n";
+        echo "  DELETE <t> <id>         Delete row\n";
+        echo "  SHOW TABLES             List tables\n";
+        echo "  TRUNCATE <t>            Remove all rows from table\n";
+        echo "  ROTATE <t>              Pop+rotate queue\n\n";
         echo "Examples:\n";
         echo "  pinydb-cli -c \"PING\"\n";
+        echo "  pinydb-cli -c \"CREATE users\"\n";
         echo "  pinydb-cli -c \"INSERT users {\\\"name\\\":\\\"aa\\\"}\"\n";
     }
 
     private function printBanner(): void
     {
-        echo "    /\\     PinyDB CLI\n";
-        echo "   ( ••)    lightweight JSON DB\n";
-        echo "   /\\_/\\   powered by PHP\n";
-        echo "------------------------------\n";
+        $banner = <<<ASCII
+  ____  _              ____  ____  
+ |  _ \(_)_ __  _   _ / ___|| __ ) 
+ | |_) | | '_ \| | | |\___ \|  _ \ 
+ |  __/| | | | | |_| | ___) | |_) |
+ |_|   |_|_| |_|\__, ||____/|____/ 
+               |___/               
+ASCII;
+
+        echo $banner . "\n";
     }
 
     // -----------------------------
@@ -137,7 +145,7 @@ class PinyDBCli
 
         $this->printHelp();
 
-        echo "\nUse 'exit', 'quit' or '\\q' to leave.\n\n";
+        echo "\nType 'help' to see commands again. Use 'exit', 'quit' or '\\q' to leave.\n\n";
 
         while (true) {
             if (function_exists('readline')) {
@@ -164,14 +172,19 @@ class PinyDBCli
                 continue;
             }
 
+            // Allow trailing ';' like mysql
+            if (substr($line, -1) === ';') {
+                $line = rtrim(substr($line, 0, -1));
+            }
+
             $lower = strtolower($line);
             if (in_array($lower, ['exit', 'quit', '\\q'], true)) {
                 break;
             }
 
-            // Allow trailing ';' like mysql
-            if (substr($line, -1) === ';') {
-                $line = rtrim(substr($line, 0, -1));
+            if (in_array($lower, ['help', '?'], true)) {
+                $this->printHelp();
+                continue;
             }
 
             $res = $this->send($host, $port, $timeout, $line);

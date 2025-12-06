@@ -66,6 +66,8 @@ catch(Exception $e) {
   --help                        Show this help message
   -c <CMD>                      Run a single command
   PING                          Test connection
+  CREATE <table>                Create a new table
+  DROP <table>                  Drop a table
   COUNT  <table>                Count rows in table
   ALL    <table>                Get all rows
   GET    <table> <id>           Get 1 row

@@ -100,6 +100,14 @@ class PinyDBServer
                     if (!is_array($row)) return $this->error("Invalid JSON row");
                     return ['ok' => true, 'data' => $this->db->insert($parts[1], $row)];
 
+                case 'CREATE':
+                    if (count($parts) < 2) return $this->error("CREATE <table>");
+                    return ['ok' => true, 'data' => $this->db->create($parts[1])];
+
+                case 'DROP':
+                    if (count($parts) < 2) return $this->error("DROP <table>");
+                    return ['ok' => true, 'data' => $this->db->drop($parts[1])];
+
                 case 'UPDATE':
                     $p = explode(' ', $line, 4);
                     if (count($p) < 4) return $this->error("UPDATE <table> <id> <json_fields>");
