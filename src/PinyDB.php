@@ -42,6 +42,7 @@ class PinyDB
         return [
             'auto_id' => 1,
             'rows'    => [],
+            'random_ids' => [],
         ];
     }
 
@@ -73,6 +74,10 @@ class PinyDB
             $data['auto_id'] = count($data['rows'])
                 ? (max(array_column($data['rows'], 'id')) + 1)
                 : 1;
+        }
+
+        if (!isset($data['random_ids']) || !is_array($data['random_ids'])) {
+            $data['random_ids'] = [];
         }
 
         return $data;
@@ -140,6 +145,8 @@ class PinyDB
         $data['auto_id'] = $id + 1;
         $data['rows'][]  = $row;
 
+        $data['random_ids'] = [];
+
         $this->save($table, $data);
 
         return $row['id'];
@@ -192,6 +199,7 @@ class PinyDB
 
         if ($after !== $before) {
             $data['rows'] = $rows;
+            $data['random_ids'] = [];
             $this->save($table, $data);
             return true;
         }
@@ -206,6 +214,7 @@ class PinyDB
     {
         $data = $this->load($table);
         $data['rows'] = array_values($rows);
+        $data['random_ids'] = [];
         $this->save($table, $data);
     }
 
@@ -253,6 +262,66 @@ class PinyDB
     public function rotatedPop(string $table): ?array
     {
         return $this->rotate($table);
+    }
+
+    /**
+     * Randomized rotation:
+     * - Builds a temporary shuffle pool of row ids (if missing)
+     * - Picks a random id from the pool
+     * - Removes it from the pool and returns the corresponding row
+     * - If a stale id is encountered, it is dropped and the pick is retried
+     * - When the pool becomes empty it is rebuilt from current rows
+     *
+     * Returns null if table is empty.
+     */
+    public function random(string $table): ?array
+    {
+        $data = $this->load($table);
+
+        //return empty, if table is empty
+        if(empty($data) || empty($data['rows'])){
+            return null;
+        }
+
+        //create pool if not exists
+        if(empty($data['random_ids'])){
+            foreach ($data['rows'] as $row) {
+                array_push( $data['random_ids'], (int) $row['id'] );
+            }
+            $this->save($table, $data);
+        }
+
+        while (!empty($data['random_ids'])) {
+
+            //choose random index
+            $index = array_rand($data['random_ids']);
+
+            //get id from index
+            $id    = (int)$data['random_ids'][$index];
+
+            //remove index from random pool
+            array_splice($data['random_ids'], $index, 1);
+
+            //update pool
+            $this->save($table, $data);
+
+            //get data by id (implicitly it will check if its valid)
+            $record = $this->get( $table , $id );
+
+            //if valid then break or else continue
+            if(!empty($record)){
+                return $record;
+            }
+        }
+
+        //if program reached here, it means there is no valid id found, 
+        //so recreate random pool and try again
+        foreach ($data['rows'] as $row) {
+            array_push( $data['random_ids'], (int) $row['id'] );
+        }
+
+        return $this->random($table);
+
     }
 }
 

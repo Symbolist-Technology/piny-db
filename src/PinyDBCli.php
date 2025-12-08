@@ -51,8 +51,10 @@ class PinyDBCli
     {
         echo "PinyDB CLI Commands\n";
         echo "-------------------\n";
-        echo "  --help / help            Show this help message\n";
+        echo "  --help | help           Show this help message\n";
         echo "  -c <CMD>                Run a single command\n";
+        echo "  --daemon | -d           Run in background\n";
+        echo "  --pidfile=              PID file when Runs in background\n";
         echo "  PING                    Test connection\n";
         echo "  CREATE <table>          Create a new table\n";
         echo "  DROP <table>            Drop a table\n";
@@ -64,7 +66,8 @@ class PinyDBCli
         echo "  DELETE <t> <id>         Delete row\n";
         echo "  SHOW TABLES             List tables\n";
         echo "  TRUNCATE <t>            Remove all rows from table\n";
-        echo "  ROTATE <t>              Pop+rotate queue\n\n";
+        echo "  ROTATE <t>              Pop+rotate queue\n";
+        echo "  RANDOM <t>              Randomly pop+rotate queue\n\n";
         echo "Examples:\n";
         echo "  pinydb-cli -c \"PING\"\n";
         echo "  pinydb-cli -c \"CREATE users\"\n";
@@ -74,12 +77,17 @@ class PinyDBCli
     private function printBanner(): void
     {
         $banner = <<<ASCII
-  ____  _              ____  ____  
- |  _ \(_)_ __  _   _ / ___|| __ ) 
- | |_) | | '_ \| | | |\___ \|  _ \ 
- |  __/| | | | | |_| | ___) | |_) |
- |_|   |_|_| |_|\__, ||____/|____/ 
-               |___/               
+
+
+ ____   _                ____   ____  
+|  _ \ (_) _ __   _   _ |  _ \ | __ ) 
+| |_) || || '_ \ | | | || | | ||  _ \ 
+|  __/ | || | | || |_| || |_| || |_) |
+|_|    |_||_| |_| \__, ||____/ |____/ 
+                  |___/              
+
+
+ 
 ASCII;
 
         echo $banner . "\n";
@@ -143,7 +151,7 @@ ASCII;
     {
         $this->printBanner();
 
-        $this->printHelp();
+        //$this->printHelp();
 
         echo "\nType 'help' to see commands again. Use 'exit', 'quit' or '\\q' to leave.\n\n";
 

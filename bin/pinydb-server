@@ -2,6 +2,14 @@
 <?php
 declare(strict_types=1);
 
+//-- DEFAULT CONFIGS --//
+$logfile    = '/tmp/pinydb.log';
+$pidfile    = '/tmp/pinydb.pid';
+$host       = '127.0.0.1';
+$port       = 9999;
+$dataDir    = '/pinydb-data';
+
+//-- LOADING DEPENDENCIES - COMPOSER AUTOLOAD --//
 /**
  * Composer-ready server entry for PinyDB.
  * Example:
@@ -29,14 +37,57 @@ if (!$loaded) {
     exit(1);
 }
 
+// -- deamonizing -- //
+
+//-- pidfile
+foreach ($argv as $arg) {
+    if (str_starts_with($arg, '--pidfile=')) {
+        $pidfile = substr($arg, 10);
+    }
+}
+
+$daemon = in_array('--daemon', $argv) || in_array('-d', $argv);
+
+if ($daemon) {
+    $pid = pcntl_fork();
+    if ($pid < 0) {
+        fwrite(STDERR, "Failed to fork\n");
+        exit(1);
+    }
+    if ($pid > 0) {
+        // Parent exits, child continues
+        echo "PinyDB server daemonized, PID: $pid (pidfile -> $pidfile)\n";
+        exit(0);
+    }
+
+    // Child becomes session leader
+    posix_setsid();
+
+    // Optional: redirect stdio
+    fclose(STDIN);
+    fclose(STDOUT);
+    fclose(STDERR);
+
+    $log = fopen($logfile, 'a');
+    $null = fopen('/dev/null', 'c');
+
+}
+
+if ($daemon) {
+    file_put_contents($pidfile, getmypid());
+}
+
+//-- CMD OPTIONS HANDLING --//
+
 use PinyDB\PinyDBServer;
+
 
 $options = getopt('h:P:d:', ['host:', 'port:', 'data-dir:']);
 
-$host = $options['h']      ?? $options['host']     ?? '127.0.0.1';
-$port = isset($options['P']) ? (int)$options['P']
-      : (isset($options['port']) ? (int)$options['port'] : 9999);
-$dataDir = $options['d']   ?? $options['data-dir'] ?? (getcwd() . '/data');
+$host = $options['h']      ?? $options['host']     ?? $host;
+$port = isset($options['P']) ? (int)$options['P'] 
+      : (isset($options['port']) ? (int)$options['port'] : $port);
+$dataDir = $options['d']   ?? $options['data-dir'] ?? (getcwd() . $dataDir);
 
 if (!is_dir($dataDir)) {
     if (!mkdir($dataDir, 0777, true) && !is_dir($dataDir)) {
@@ -44,6 +95,9 @@ if (!is_dir($dataDir)) {
         exit(1);
     }
 }
+
+
+
 
 $server = new PinyDBServer($host, $port, $dataDir);
 $server->start();
