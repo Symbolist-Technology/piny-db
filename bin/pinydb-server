@@ -36,7 +36,7 @@ $options = getopt('h:P:d:', ['host:', 'port:', 'data-dir:']);
 $host = $options['h']      ?? $options['host']     ?? '127.0.0.1';
 $port = isset($options['P']) ? (int)$options['P']
       : (isset($options['port']) ? (int)$options['port'] : 9999);
-$dataDir = $options['d']   ?? $options['data-dir'] ?? (getcwd() . '/data');
+$dataDir = $options['d']   ?? $options['data-dir'] ?? (getcwd() . '/pinydb-data');
 
 if (!is_dir($dataDir)) {
     if (!mkdir($dataDir, 0777, true) && !is_dir($dataDir)) {
