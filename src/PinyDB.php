@@ -277,42 +277,51 @@ class PinyDB
     public function random(string $table): ?array
     {
         $data = $this->load($table);
-        $rowsById = [];
 
-        foreach ($data['rows'] as $row) {
-            $rowsById[(int)$row['id']] = $row;
-        }
-
-        if (empty($rowsById)) {
-            $data['random_ids'] = [];
-            $this->save($table, $data);
+        //return empty, if table is empty
+        if(empty($data) || empty($data['rows'])){
             return null;
         }
 
-        if (empty($data['random_ids'])) {
-            $data['random_ids'] = array_keys($rowsById);
+        //create pool if not exists
+        if(empty($data['random_ids'])){
+            foreach ($data['rows'] as $row) {
+                array_push( $data['random_ids'], (int) $row['id'] );
+            }
+            $this->save($table, $data);
         }
 
-        while (true) {
-            if (empty($data['random_ids'])) {
-                $data['random_ids'] = array_keys($rowsById);
-            }
+        while (!empty($data['random_ids'])) {
 
-            if (empty($data['random_ids'])) {
-                $this->save($table, $data);
-                return null;
-            }
-
+            //choose random index
             $index = array_rand($data['random_ids']);
+
+            //get id from index
             $id    = (int)$data['random_ids'][$index];
 
+            //remove index from random pool
             array_splice($data['random_ids'], $index, 1);
 
-            if (isset($rowsById[$id])) {
-                $this->save($table, $data);
-                return $rowsById[$id];
+            //update pool
+            $this->save($table, $data);
+
+            //get data by id (implicitly it will check if its valid)
+            $record = $this->get( $table , $id );
+
+            //if valid then break or else continue
+            if(!empty($record)){
+                return $record;
             }
         }
+
+        //if program reached here, it means there is no valid id found, 
+        //so recreate random pool and try again
+        foreach ($data['rows'] as $row) {
+            array_push( $data['random_ids'], (int) $row['id'] );
+        }
+
+        return $this->random($table);
+
     }
 }
 

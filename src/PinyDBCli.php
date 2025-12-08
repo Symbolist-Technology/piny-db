@@ -51,8 +51,10 @@ class PinyDBCli
     {
         echo "PinyDB CLI Commands\n";
         echo "-------------------\n";
-        echo "  --help / help            Show this help message\n";
+        echo "  --help | help           Show this help message\n";
         echo "  -c <CMD>                Run a single command\n";
+        echo "  --daemon | -d           Run in background\n";
+        echo "  --pidfile=              PID file when Runs in background\n";
         echo "  PING                    Test connection\n";
         echo "  CREATE <table>          Create a new table\n";
         echo "  DROP <table>            Drop a table\n";
