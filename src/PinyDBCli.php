@@ -77,12 +77,17 @@ class PinyDBCli
     private function printBanner(): void
     {
         $banner = <<<ASCII
-  ____  _              ____  ____  
- |  _ \(_)_ __  _   _ / ___|| __ ) 
- | |_) | | '_ \| | | |\___ \|  _ \ 
- |  __/| | | | | |_| | ___) | |_) |
- |_|   |_|_| |_|\__, ||____/|____/ 
-               |___/               
+
+
+ ____   _                ____   ____  
+|  _ \ (_) _ __   _   _ |  _ \ | __ ) 
+| |_) || || '_ \ | | | || | | ||  _ \ 
+|  __/ | || | | || |_| || |_| || |_) |
+|_|    |_||_| |_| \__, ||____/ |____/ 
+                  |___/              
+
+
+ 
 ASCII;
 
         echo $banner . "\n";
@@ -146,7 +151,7 @@ ASCII;
     {
         $this->printBanner();
 
-        $this->printHelp();
+        //$this->printHelp();
 
         echo "\nType 'help' to see commands again. Use 'exit', 'quit' or '\\q' to leave.\n\n";
 
