@@ -9,6 +9,7 @@ $host       = '127.0.0.1';
 $port       = 9999;
 $dataDir    = '/pinydb-data';
 $clientTimeout = 3;
+$useFlock = true;
 
 //-- LOADING DEPENDENCIES - COMPOSER AUTOLOAD --//
 /**
@@ -83,7 +84,7 @@ if ($daemon) {
 use PinyDB\PinyDBServer;
 
 
-$options = getopt('h:P:d:t:', ['host:', 'port:', 'data-dir:', 'client-timeout:']);
+$options = getopt('h:P:d:t:', ['host:', 'port:', 'data-dir:', 'client-timeout:', 'disable-flock']);
 
 $host = $options['h']      ?? $options['host']     ?? $host;
 $port = isset($options['P']) ? (int)$options['P']
@@ -91,6 +92,7 @@ $port = isset($options['P']) ? (int)$options['P']
 $dataDir = $options['d']   ?? $options['data-dir'] ?? (getcwd() . $dataDir);
 $clientTimeout = isset($options['t']) ? (int)$options['t']
                 : (isset($options['client-timeout']) ? (int)$options['client-timeout'] : $clientTimeout);
+$useFlock = array_key_exists('disable-flock', $options) ? false : $useFlock;
 
 if (!is_dir($dataDir)) {
     if (!mkdir($dataDir, 0777, true) && !is_dir($dataDir)) {
@@ -102,6 +104,6 @@ if (!is_dir($dataDir)) {
 
 
 
-$server = new PinyDBServer($host, $port, $dataDir, $clientTimeout);
+$server = new PinyDBServer($host, $port, $dataDir, $clientTimeout, $useFlock);
 $server->start();
 

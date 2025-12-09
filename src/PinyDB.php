@@ -6,10 +6,12 @@ namespace PinyDB;
 class PinyDB
 {
     private string $dir;
+    private bool $useFlock;
 
-    public function __construct(string $dir)
+    public function __construct(string $dir, bool $useFlock = true)
     {
         $this->dir = rtrim($dir, '/');
+        $this->useFlock = $useFlock;
 
         if (!is_dir($this->dir)) {
             mkdir($this->dir, 0777, true);
@@ -60,9 +62,13 @@ class PinyDB
         }
 
         // shared lock for read
-        flock($fp, LOCK_SH);
+        if ($this->useFlock) {
+            flock($fp, LOCK_SH);
+        }
         $json = stream_get_contents($fp);
-        flock($fp, LOCK_UN);
+        if ($this->useFlock) {
+            flock($fp, LOCK_UN);
+        }
         fclose($fp);
 
         $data = json_decode($json, true);
@@ -98,7 +104,7 @@ class PinyDB
         }
 
         // exclusive lock for write
-        if (!flock($fp, LOCK_EX)) {
+        if ($this->useFlock && !flock($fp, LOCK_EX)) {
             fclose($fp);
             throw new RuntimeException("Cannot lock DB file: {$file}");
         }
@@ -108,7 +114,9 @@ class PinyDB
         fwrite($fp, json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
         fflush($fp);
 
-        flock($fp, LOCK_UN);
+        if ($this->useFlock) {
+            flock($fp, LOCK_UN);
+        }
         fclose($fp);
     }
 
