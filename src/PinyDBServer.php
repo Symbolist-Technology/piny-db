@@ -13,20 +13,30 @@ class PinyDBServer
     private $server = null;
 
     private int $clientTimeout;
+    private string $logfile;
 
     private PinyDB $db;
 
     private bool $useFlock;
 
-    public function __construct(string $host, int $port, string $dataDir, int $clientTimeout = 3, bool $useFlock = true)
+    public function __construct(string $host, int $port, string $dataDir, int $clientTimeout = 3, bool $useFlock = true, $logfile = '/tmp/pinydb.log')
     {
         $this->host    = $host;
         $this->port    = $port;
         $this->dataDir = rtrim($dataDir, '/');
         $this->clientTimeout = $clientTimeout;
         $this->useFlock = $useFlock;
+        $this->logfile = $logfile;
 
         $this->db = new PinyDB($this->dataDir, $this->useFlock);
+    }
+
+    private function log( $msg = '' ) {
+        //add date
+        $msg = "[".date('c')."] ".$msg."\n";
+        echo $msg;
+        //write to file
+        file_put_contents( $this->logfile, $msg, FILE_APPEND );
     }
 
     public function start(): void
@@ -36,16 +46,19 @@ class PinyDBServer
         $this->server = @stream_socket_server($addr, $errno, $errstr);
 
         if (!$this->server) {
+            $this->log( "Failed to start server: {$errstr} ({$errno}");
             throw new \RuntimeException("Failed to start server: {$errstr} ({$errno})");
         }
 
-        echo "PinyDBServer listening on {$this->host}:{$this->port}, data dir: {$this->dataDir}\n";
+        $this->log( "Starting to listen on {$this->host}:{$this->port}, data dir: {$this->dataDir}");
 
         while (true) {
             $conn = @stream_socket_accept($this->server, -1);
             if ($conn === false) {
+                $this->log("Failed to get connection!");
                 continue;
             }
+            $this->log("Connection successful!");
             $this->handleClient($conn);
             fclose($conn);
         }
@@ -61,6 +74,7 @@ class PinyDBServer
             if ($line === false) {
                 $meta = stream_get_meta_data($conn);
                 if (($meta['timed_out'] ?? false) === true) {
+                    $this->log("Connection Timeout!");
                     break;
                 }
                 break;
@@ -157,6 +171,7 @@ class PinyDBServer
 
     private function error(string $msg): array
     {
+        $this->log("Error: $msg!");
         return ['ok' => false, 'error' => $msg];
     }
 }
