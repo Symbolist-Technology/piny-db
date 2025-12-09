@@ -20,8 +20,10 @@ class PinyDBServer
     private bool $useFlock;
 
     private bool $useForks = true;
+    private int $maxChildren;
+    private int $activeChildren = 0;
 
-    public function __construct(string $host, int $port, string $dataDir, int $clientTimeout = 3, bool $useFlock = true, $logfile = '/tmp/pinydb.log')
+    public function __construct(string $host, int $port, string $dataDir, int $clientTimeout = 3, bool $useFlock = true, $logfile = '/tmp/pinydb.log', int $maxChildren = 20)
     {
         $this->host    = $host;
         $this->port    = $port;
@@ -29,6 +31,7 @@ class PinyDBServer
         $this->clientTimeout = $clientTimeout;
         $this->useFlock = $useFlock;
         $this->logfile = $logfile;
+        $this->maxChildren = $maxChildren;
 
         $this->db = new PinyDB($this->dataDir, $this->useFlock);
     }
@@ -64,6 +67,13 @@ class PinyDBServer
             }
 
             if ($this->useForks && function_exists('pcntl_fork')) {
+                $this->reapChildren();
+
+                while ($this->activeChildren >= $this->maxChildren) {
+                    $this->log("Max child processes reached ({$this->maxChildren}), waiting...");
+                    $this->reapChildren(true);
+                }
+
                 $pid = pcntl_fork();
 
                 if ($pid === -1) {
@@ -85,6 +95,7 @@ class PinyDBServer
                 // Parent process: close child socket and continue accepting.
                 fclose($conn);
                 $this->log("Connection dispatched to child {$pid}");
+                $this->activeChildren++;
                 continue;
             }
 
@@ -105,10 +116,32 @@ class PinyDBServer
         }
 
         pcntl_signal(SIGCHLD, function () {
-            while (pcntl_waitpid(-1, $status, WNOHANG) > 0) {
-                // Reap all exited children.
-            }
+            $this->reapChildren();
         });
+    }
+
+    private function reapChildren(bool $block = false): void
+    {
+        if (!$this->useForks || !function_exists('pcntl_waitpid')) {
+            return;
+        }
+
+        while (true) {
+            $pid = pcntl_waitpid(-1, $status, $block ? 0 : WNOHANG);
+
+            if ($pid > 0) {
+                $this->activeChildren = max(0, $this->activeChildren - 1);
+                continue;
+            }
+
+            if ($pid === 0 && !$block) {
+                break;
+            }
+
+            if ($pid === -1) {
+                break;
+            }
+        }
     }
 
     private function handleClient($conn): void
