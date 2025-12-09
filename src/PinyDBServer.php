@@ -34,7 +34,7 @@ class PinyDBServer
     private function log( $msg = '' ) {
         //add date
         $msg = "[".date('c')."] ".$msg."\n";
-        echo $msg;
+        //echo $msg;
         //write to file
         file_put_contents( $this->logfile, $msg, FILE_APPEND );
     }

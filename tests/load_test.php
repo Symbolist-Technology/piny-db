@@ -21,7 +21,7 @@ function showUsage(): void
     echo "Options:\n";
     echo "  -p, --processes <int>     Number of processes (default: 10)\n";
     echo "  -c, --calls <int>         Number of calls per process (default: 100)\n";
-    echo "  -t, --type <random|rotate> Type of call to execute (default: random)\n";
+    echo "  -t, --type <random|rotate|count> Type of call to execute (default: random)\n";
     echo "      --host <string>       Server host (default: 127.0.0.1)\n";
     echo "      --port <int>          Server port (default: 9999)\n";
     echo "      --table <string>      Target table name (default: records)\n";
@@ -30,7 +30,7 @@ function showUsage(): void
 
 $options = getopt('p:c:t:h', ['processes:', 'calls:', 'type:', 'host::', 'port::', 'table::', 'help']);
 
-if (isset($options['h']) || isset($options['help'])) {
+if (isset($options['h']) || isset($options['help']) || empty($argv[1])) {
     showUsage();
     exit(0);
 }
@@ -42,7 +42,7 @@ $host            = (string)($options['host'] ?? '127.0.0.1');
 $port            = (int)($options['port'] ?? 9999);
 $table           = (string)($options['table'] ?? 'records');
 
-if (!in_array($type, ['random', 'rotate'], true)) {
+if (!in_array($type, ['random', 'rotate', 'count'], true)) {
     fwrite(STDERR, "Invalid --type value. Allowed: random, rotate\n");
     exit(1);
 }
@@ -108,6 +108,7 @@ function spawnWorkers(
                         $client->rotate($table);
                     }
                     $success = true;
+                    sleep(1);
                 } catch (Throwable $e) {
                     $success = false;
                 }
