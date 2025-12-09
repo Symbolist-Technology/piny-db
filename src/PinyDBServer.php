@@ -16,14 +16,17 @@ class PinyDBServer
 
     private PinyDB $db;
 
-    public function __construct(string $host, int $port, string $dataDir, int $clientTimeout = 3)
+    private bool $useFlock;
+
+    public function __construct(string $host, int $port, string $dataDir, int $clientTimeout = 3, bool $useFlock = true)
     {
         $this->host    = $host;
         $this->port    = $port;
         $this->dataDir = rtrim($dataDir, '/');
         $this->clientTimeout = $clientTimeout;
+        $this->useFlock = $useFlock;
 
-        $this->db = new PinyDB($this->dataDir);
+        $this->db = new PinyDB($this->dataDir, $this->useFlock);
     }
 
     public function start(): void

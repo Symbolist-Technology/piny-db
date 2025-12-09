@@ -61,6 +61,22 @@ catch(Exception $e) {
 
 ```
 
+**Disabling file locks**
+
+PinyDB uses `flock` for read and write operations by default. If you are working on a filesystem that does not support file locks (for example, some network mounts), you can disable locking:
+
+```php
+use PinyDB\PinyDB;
+
+$db = new PinyDB('/path/to/data', false); // disable flock
+```
+
+The TCP server can also skip locking via a flag:
+
+```
+./vendor/bin/pinydb-server --disable-flock -h 127.0.0.1 -P 9999 -d ./piny-data
+```
+
 ## Commands
 ```
   --help                        Show this help message
