@@ -19,6 +19,8 @@ class PinyDBServer
 
     private bool $useFlock;
 
+    private bool $useForks = true;
+
     public function __construct(string $host, int $port, string $dataDir, int $clientTimeout = 3, bool $useFlock = true, $logfile = '/tmp/pinydb.log')
     {
         $this->host    = $host;
@@ -52,16 +54,61 @@ class PinyDBServer
 
         $this->log( "Starting to listen on {$this->host}:{$this->port}, data dir: {$this->dataDir}");
 
+        $this->setupChildReaper();
+
         while (true) {
             $conn = @stream_socket_accept($this->server, -1);
             if ($conn === false) {
                 $this->log("Failed to get connection!");
                 continue;
             }
+
+            if ($this->useForks && function_exists('pcntl_fork')) {
+                $pid = pcntl_fork();
+
+                if ($pid === -1) {
+                    $this->log("Failed to fork for incoming connection");
+                    fclose($conn);
+                    continue;
+                }
+
+                if ($pid === 0) {
+                    // Child process: handle client and exit.
+                    fclose($this->server);
+                    $childPid = getmypid();
+                    $this->log("Connection successful (child {$childPid})!");
+                    $this->handleClient($conn);
+                    fclose($conn);
+                    exit(0);
+                }
+
+                // Parent process: close child socket and continue accepting.
+                fclose($conn);
+                $this->log("Connection dispatched to child {$pid}");
+                continue;
+            }
+
             $this->log("Connection successful!");
             $this->handleClient($conn);
             fclose($conn);
         }
+    }
+
+    private function setupChildReaper(): void
+    {
+        if (!$this->useForks || !function_exists('pcntl_signal')) {
+            return;
+        }
+
+        if (function_exists('pcntl_async_signals')) {
+            pcntl_async_signals(true);
+        }
+
+        pcntl_signal(SIGCHLD, function () {
+            while (pcntl_waitpid(-1, $status, WNOHANG) > 0) {
+                // Reap all exited children.
+            }
+        });
     }
 
     private function handleClient($conn): void
