@@ -8,6 +8,7 @@ $pidfile    = '/tmp/pinydb.pid';
 $host       = '127.0.0.1';
 $port       = 9999;
 $dataDir    = '/pinydb-data';
+$clientTimeout = 3;
 
 //-- LOADING DEPENDENCIES - COMPOSER AUTOLOAD --//
 /**
@@ -82,12 +83,14 @@ if ($daemon) {
 use PinyDB\PinyDBServer;
 
 
-$options = getopt('h:P:d:', ['host:', 'port:', 'data-dir:']);
+$options = getopt('h:P:d:t:', ['host:', 'port:', 'data-dir:', 'client-timeout:']);
 
 $host = $options['h']      ?? $options['host']     ?? $host;
-$port = isset($options['P']) ? (int)$options['P'] 
+$port = isset($options['P']) ? (int)$options['P']
       : (isset($options['port']) ? (int)$options['port'] : $port);
 $dataDir = $options['d']   ?? $options['data-dir'] ?? (getcwd() . $dataDir);
+$clientTimeout = isset($options['t']) ? (int)$options['t']
+                : (isset($options['client-timeout']) ? (int)$options['client-timeout'] : $clientTimeout);
 
 if (!is_dir($dataDir)) {
     if (!mkdir($dataDir, 0777, true) && !is_dir($dataDir)) {
@@ -99,6 +102,6 @@ if (!is_dir($dataDir)) {
 
 
 
-$server = new PinyDBServer($host, $port, $dataDir);
+$server = new PinyDBServer($host, $port, $dataDir, $clientTimeout);
 $server->start();
 
