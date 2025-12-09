@@ -12,13 +12,16 @@ class PinyDBServer
     private string $dataDir;
     private $server = null;
 
+    private int $clientTimeout;
+
     private PinyDB $db;
 
-    public function __construct(string $host, int $port, string $dataDir)
+    public function __construct(string $host, int $port, string $dataDir, int $clientTimeout = 3)
     {
         $this->host    = $host;
         $this->port    = $port;
         $this->dataDir = rtrim($dataDir, '/');
+        $this->clientTimeout = $clientTimeout;
 
         $this->db = new PinyDB($this->dataDir);
     }
@@ -48,10 +51,15 @@ class PinyDBServer
     private function handleClient($conn): void
     {
         stream_set_blocking($conn, true);
+        stream_set_timeout($conn, $this->clientTimeout);
 
         while (!feof($conn)) {
             $line = fgets($conn);
             if ($line === false) {
+                $meta = stream_get_meta_data($conn);
+                if (($meta['timed_out'] ?? false) === true) {
+                    break;
+                }
                 break;
             }
 
