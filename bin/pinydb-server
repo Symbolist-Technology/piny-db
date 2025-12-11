@@ -8,8 +8,18 @@ $pidfile    = '/tmp/pinydb.pid';
 $host       = '127.0.0.1';
 $port       = 9999;
 $dataDir    = '/pinydb-data';
-$clientTimeout = 3;
+$clientTimeout = 5;
 $useFlock = true;
+
+
+function logd( $msg = '' ) { 
+    //add date
+    $msg = "[".date('c')."] ".$msg."\n";
+    echo $msg;
+    //write to file
+    file_put_contents( $logfile, $msg, FILE_APPEND );
+}   
+
 
 //-- LOADING DEPENDENCIES - COMPOSER AUTOLOAD --//
 /**
@@ -35,7 +45,7 @@ foreach ($autoloadCandidates as $file) {
 }
 
 if (!$loaded) {
-    fwrite(STDERR, "PinyDB: unable to locate autoload.php\n");
+    logd('PinyDB: unable to locate autoload.php');
     exit(1);
 }
 
@@ -53,7 +63,7 @@ $daemon = in_array('--daemon', $argv) || in_array('-d', $argv);
 if ($daemon) {
     $pid = pcntl_fork();
     if ($pid < 0) {
-        fwrite(STDERR, "Failed to fork\n");
+        logd('Failed to fork');
         exit(1);
     }
     if ($pid > 0) {
@@ -64,15 +74,6 @@ if ($daemon) {
 
     // Child becomes session leader
     posix_setsid();
-
-    // Optional: redirect stdio
-    fclose(STDIN);
-    fclose(STDOUT);
-    fclose(STDERR);
-
-    $log = fopen($logfile, 'a');
-    $null = fopen('/dev/null', 'c');
-
 }
 
 if ($daemon) {
@@ -84,8 +85,9 @@ if ($daemon) {
 use PinyDB\PinyDBServer;
 
 
-$options = getopt('h:P:d:t:', ['host:', 'port:', 'data-dir:', 'client-timeout:', 'disable-flock']);
+$options = getopt('h:P:d:t:l:', ['host:', 'port:', 'data-dir:', 'client-timeout:', 'disable-flock', 'logfile:']);
 
+$logfile = $options['l']      ?? $options['logfile']     ?? $logfile;
 $host = $options['h']      ?? $options['host']     ?? $host;
 $port = isset($options['P']) ? (int)$options['P']
       : (isset($options['port']) ? (int)$options['port'] : $port);
@@ -96,7 +98,7 @@ $useFlock = array_key_exists('disable-flock', $options) ? false : $useFlock;
 
 if (!is_dir($dataDir)) {
     if (!mkdir($dataDir, 0777, true) && !is_dir($dataDir)) {
-        fwrite(STDERR, "Failed to create data dir: {$dataDir}\n");
+        logd("Failed to create data dir: {$dataDir}");
         exit(1);
     }
 }
@@ -104,6 +106,6 @@ if (!is_dir($dataDir)) {
 
 
 
-$server = new PinyDBServer($host, $port, $dataDir, $clientTimeout, $useFlock);
+$server = new PinyDBServer($host, $port, $dataDir, $clientTimeout, $useFlock, $logfile);
 $server->start();
 

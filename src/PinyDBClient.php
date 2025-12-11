@@ -57,7 +57,7 @@ class PinyDBClient
         if ($resp === false) {
             fclose($this->sock);
             $this->sock = null;
-            throw new RuntimeException("PinyDBClient response error (empty)");
+            throw new RuntimeException("PinyDBClient response error (empty) for line($line) bin2hex(".bin2hex($line).")");
         }
 
         $decoded = json_decode($resp, true);
