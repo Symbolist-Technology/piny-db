@@ -114,6 +114,13 @@ class PinyDBClient
         return $r['data']; // id
     }
 
+    public function push(string $table, array $row): int
+    {
+        $json = json_encode($row, JSON_UNESCAPED_UNICODE);
+        $r    = $this->send("PUSH {$table} {$json}");
+        return $r['data']; // id
+    }
+
     public function update(string $table, int $id, array $fields): bool
     {
         $json = json_encode($fields, JSON_UNESCAPED_UNICODE);
@@ -131,6 +138,12 @@ class PinyDBClient
     public function rotate(string $table): ?array
     {
         $r = $this->send("ROTATE {$table}");
+        return $r['data'];
+    }
+
+    public function pop(string $table): ?array
+    {
+        $r = $this->send("POP {$table}");
         return $r['data'];
     }
 
@@ -163,4 +176,3 @@ class PinyDBClient
         return (bool)$r['data'];
     }
 }
-
