@@ -161,6 +161,14 @@ class PinyDB
     }
 
     /**
+     * Push a row to the end of the table.
+     */
+    public function push(string $table, array $row): int
+    {
+        return $this->insert($table, $row);
+    }
+
+    /**
      * Get a row by numeric id.
      */
     public function get(string $table, int $id): ?array
@@ -213,6 +221,24 @@ class PinyDB
         }
 
         return false;
+    }
+
+    /**
+     * Pop the first row from the table.
+     */
+    public function pop(string $table): ?array
+    {
+        $data = $this->load($table);
+
+        if (empty($data['rows'])) {
+            return null;
+        }
+
+        $row = array_shift($data['rows']);
+        $data['random_ids'] = [];
+        $this->save($table, $data);
+
+        return $row;
     }
 
     /**
@@ -332,4 +358,3 @@ class PinyDB
 
     }
 }
-

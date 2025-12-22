@@ -88,11 +88,13 @@ The TCP server can also skip locking via a flag:
   ALL    <table>                Get all rows
   GET    <table> <id>           Get 1 row
   INSERT <table> <json>         Insert row
+  PUSH   <table> <json>         Push row to end
   UPDATE <table> <id> <json>    Update row
   DELETE <table> <id>           Delete row
   SHOW TABLES                   List tables
   TRUNCATE <table>              Remove all rows from table
   ROTATE <table>                Pop+rotate queue
+  POP    <table>                Pop queue
   RANDOM <table>                Randomly pop+rotate queue
 
 ```

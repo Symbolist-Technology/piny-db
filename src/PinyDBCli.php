@@ -62,11 +62,13 @@ class PinyDBCli
         echo "  ALL <table>             Get all rows\n";
         echo "  GET <table> <id>        Get 1 row\n";
         echo "  INSERT <t> <json>       Insert row\n";
+        echo "  PUSH <t> <json>         Push row to queue end\n";
         echo "  UPDATE <t> <id> <json>  Update row\n";
         echo "  DELETE <t> <id>         Delete row\n";
         echo "  SHOW TABLES             List tables\n";
         echo "  TRUNCATE <t>            Remove all rows from table\n";
         echo "  ROTATE <t>              Pop+rotate queue\n";
+        echo "  POP <t>                 Pop row from queue\n";
         echo "  RANDOM <t>              Randomly pop+rotate queue\n\n";
         echo "Examples:\n";
         echo "  pinydb-cli -c \"PING\"\n";
@@ -200,4 +202,3 @@ ASCII;
         }
     }
 }
-

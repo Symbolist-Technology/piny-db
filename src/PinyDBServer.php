@@ -205,6 +205,12 @@ class PinyDBServer
                     if (!is_array($row)) return $this->error("Invalid JSON row");
                     return ['ok' => true, 'data' => $this->db->insert($parts[1], $row)];
 
+                case 'PUSH':
+                    if (count($parts) < 3) return $this->error("PUSH <table> <json_row>");
+                    $row = json_decode($parts[2], true);
+                    if (!is_array($row)) return $this->error("Invalid JSON row");
+                    return ['ok' => true, 'data' => $this->db->push($parts[1], $row)];
+
                 case 'CREATE':
                     if (count($parts) < 2) return $this->error("CREATE <table>");
                     return ['ok' => true, 'data' => $this->db->create($parts[1])];
@@ -237,6 +243,10 @@ class PinyDBServer
                     if (count($parts) < 2) return $this->error("ROTATED_POP <table>");
                     return ['ok' => true, 'data' => $this->db->rotate($parts[1])];
 
+                case 'POP':
+                    if (count($parts) < 2) return $this->error("POP <table>");
+                    return ['ok' => true, 'data' => $this->db->pop($parts[1])];
+
                 case 'RANDOM':
                     if (count($parts) < 2) return $this->error("RANDOM <table>");
                     return ['ok' => true, 'data' => $this->db->random($parts[1])];
@@ -255,4 +265,3 @@ class PinyDBServer
         return ['ok' => false, 'error' => $msg];
     }
 }
-
