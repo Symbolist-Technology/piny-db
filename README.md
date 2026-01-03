@@ -16,8 +16,20 @@ php composer.phar require symbolist/piny-db
 **Start Server**
 
 ```
-./vendor/bin/pinydb-server -h 127.0.0.1 -P 9999 -d ./piny-data 
+./vendor/bin/pinydb-server -h 127.0.0.1 -P 9999 -d ./piny-data
 ```
+
+**Server CLI Options**
+
+- `--host`, `-h` – Bind address (default: `127.0.0.1`).
+- `--port`, `-P` – Port to listen on (default: `9999`).
+- `--data-dir`, `-d` – Directory for table storage (default: current working directory + `/pinydb-data`).
+- `--client-timeout`, `-t` – Socket timeout in seconds for client connections (default: `5`).
+- `--logfile`, `-l` – Log file path (default: `/tmp/pinydb.log`).
+- `--max-children`, `-m` – Maximum concurrent child processes when forking is available (default: `20`).
+- `--disable-flock` – Skip file locking (useful on filesystems without `flock`).
+- `--daemon` – Run the server as a background process (writes the PID to the pidfile).
+- `--pidfile=PATH` – Override the pidfile location when using `--daemon` (default: `/tmp/pinydb.pid`).
 
 
 
