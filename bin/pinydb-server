@@ -10,6 +10,7 @@ $port       = 9999;
 $dataDir    = '/pinydb-data';
 $clientTimeout = 5;
 $useFlock = true;
+$maxChildren = 20;
 
 
 function logd( $msg = '' ) { 
@@ -85,7 +86,7 @@ if ($daemon) {
 use PinyDB\PinyDBServer;
 
 
-$options = getopt('h:P:d:t:l:', ['host:', 'port:', 'data-dir:', 'client-timeout:', 'disable-flock', 'logfile:']);
+$options = getopt('h:P:d:t:l:m:', ['host:', 'port:', 'data-dir:', 'client-timeout:', 'disable-flock', 'logfile:', 'max-children:']);
 
 $logfile = $options['l']      ?? $options['logfile']     ?? $logfile;
 $host = $options['h']      ?? $options['host']     ?? $host;
@@ -95,6 +96,8 @@ $dataDir = $options['d']   ?? $options['data-dir'] ?? (getcwd() . $dataDir);
 $clientTimeout = isset($options['t']) ? (int)$options['t']
                 : (isset($options['client-timeout']) ? (int)$options['client-timeout'] : $clientTimeout);
 $useFlock = array_key_exists('disable-flock', $options) ? false : $useFlock;
+$maxChildren = isset($options['m']) ? (int)$options['m']
+             : (isset($options['max-children']) ? (int)$options['max-children'] : $maxChildren);
 
 if (!is_dir($dataDir)) {
     if (!mkdir($dataDir, 0777, true) && !is_dir($dataDir)) {
@@ -106,6 +109,6 @@ if (!is_dir($dataDir)) {
 
 
 
-$server = new PinyDBServer($host, $port, $dataDir, $clientTimeout, $useFlock, $logfile);
+$server = new PinyDBServer($host, $port, $dataDir, $clientTimeout, $useFlock, $logfile, $maxChildren);
 $server->start();
 
